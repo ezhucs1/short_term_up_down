@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-SMA Trend Analysis</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Multi-SMA Trend Analysis</h1>
+    <div class="chart-container">
+      <canvas id="smaChart"></canvas>
+    </div>
+    <div class="alerts" id="alertsContainer">
+      <h2>Crossovers</h2>
+      <div id="alertsList"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import SMAAnalyzer from './js/sma-analyzer.js';
+    import { createSMATrendChart } from './js/chart-config.js';
+    
+    async function loadData() {
+      try {
+        const response = await fetch('samples/sample-data.json');
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error loading data:', error);
+        return [];
+      }
+    }
+    
+    function displayAlerts(crossovers) {
+      const alertsList = document.getElementById('alertsList');
+      alertsList.innerHTML = '';
+      
+      crossovers.forEach(crossover => {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert-item ${crossover.type}`;
+        alertDiv.innerHTML = `
+          <strong>${crossover.type.toUpperCase()} CROSSOVER</strong>
+          <p>${crossover.time.toLocaleDateString()}: ${crossover.message}</p>
+        `;
+        alertsList.appendChild(alertDiv);
+      });
+    }
+    
+    async function initialize() {
+      const data = await loadData();
+      const analyzer = new SMAAnalyzer(data);
+      createSMATrendChart(analyzer);
+      
+      const crossovers = analyzer.getCrossovers();
+      displayAlerts(crossovers);
+    }
+    
+    document.addEventListener('DOMContentLoaded', initialize);
+  </script>
+</body>
+</html>
